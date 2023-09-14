@@ -10,7 +10,7 @@ const items = [
       real_estate_agency: false,
       tags: [],
     },
-    price: 49609,
+    price: 19609,
     currency_id: 'ARS',
     available_quantity: 1,
     sold_quantity: 1,
@@ -392,7 +392,7 @@ const items = [
       real_estate_agency: false,
       tags: [],
     },
-    price: 65999,
+    price: 17999,
     currency_id: 'ARS',
     available_quantity: 100,
     sold_quantity: 0,
@@ -484,7 +484,7 @@ const items = [
       real_estate_agency: false,
       tags: [],
     },
-    price: 34899,
+    price: 14899,
     currency_id: 'ARS',
     available_quantity: 1,
     sold_quantity: 0,
@@ -584,46 +584,47 @@ function getTags(tags) {
   let tagList = [];
   for (let j = 0; j < tags.length; j++) {
     const tagContent = tags[j];
-
     //html Template
     const tag = ` <button class="btn btn-outline-info" id="tags">
                       ${tagContent}
                   </button>`;
-
     // Anadir el tag a la lista de tags
     tagList.push(tag);
   }
-  return tagList.join('');
+  return tagList.join("");
 }
 
-
+function priceFormat(price) {
+  return price.toLocaleString("es-CO", {
+    style: "currency",
+    currency: "COP",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
+}
 
 function getProductList(products, filter) {
-
   const cellist = [];
   for (let i = 0; i < products.length; i++) {
     const product = products[i];
 
     // crea una var para identificar el envio
-    let envio = '';
-    let tagList = '';
+    let envio = "";
+    let tagList = "";
 
     if (product.shipping.free_shipping) {
       envio = `
             <a class="icon-link icon-link-hover" style="transform: translate3d(0, -.125rem, 0);" href="#">
                 <img src="../assets/ic_shipping.png">
             </a>`;
-
       tagList = getTags(product.tags);
     }
 
     const priceWithoutDecimals = Math.floor(product.price); // Eliminar decimales del precio
-    const formattedPrice = priceWithoutDecimals.toLocaleString('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }); // Formatear el precio sin decimales con separador de miles y símbolo de moneda
+    const formattedPrice = priceFormat(priceWithoutDecimals); // Formatear el precio sin decimales con separador de miles y símbolo de moneda
+
+    const priceWithoutDecimals = Math.floor(product.price); // Eliminar decimales del precio
+    const formattedPrice = priceFormat(priceWithoutDecimals); // Formatear el precio sin decimales con separador de miles y símbolo de moneda
 
     // template de elementos html
     const item = `
@@ -653,101 +654,112 @@ function getProductList(products, filter) {
         <hr>
     </div>`;
 
-
-    // Aplicar logica de filtrado a los items o productos  
+    // Aplicar logica de filtrado a los items o productos
     // LOGICAL OPERATORS - && "y" || "o"
 
-    if(filter) {
-      if(product.price > filter.price.min  && product.price < filter.price.max){
+    if (filter) {
+      if (
+        product.price > filter.price.min &&
+        product.price < filter.price.max
+      ) {
         cellist.push(item); //añade uno o más elementos al final de un array y devuelve la nueva longitud del array.
       }
-    }else {
+    } else {
       cellist.push(item);
     }
- 
   }
-  return `<div>${cellist.join('')}</div>`;
+  return `<div>${cellist.join("")}</div>`;
 }
 
-
 // Obteniendo el elemento input del DOM
-const searchBar = document.getElementById('search-bar');
-
-function searchByPrice(event){
+const searchBar = document.getElementById("search-bar");
+function searchByPrice(event) {
   // "6000" -> 6000
   const targetPrice = Number(event.target.value);
   // recalcular la lista de productos con base en un max-min precio
-  const productList= getProductList(items,  targetPrice); 
+  const productList = getProductList(items, targetPrice);
 
   // Refrescar mi DOM
-  document.getElementById('app').innerHTML = productList
+  document.getElementById("app").innerHTML = productList;
 }
 
-searchBar.addEventListener("keyup", searchByPrice);
-
-
-
+earchBar.addEventListener("keyup", searchByPrice);
 
 function filter() {
   // Creando un objeto que describe un filtro de prductos
-
+  const maxPriceInput = document.getElementsByName("maxPrice");
+  const minPriceInput = document.getElementsByName("minPrice");
+  document.getElementsByName("minPrice")
   // 1. Capturar los valores de los inputs max-min
-  const maxPrice = Number(document.getElementsByName("maxPrice")[0].value);
-  const minPrice = Number(document.getElementsByName("minPrice")[0].value);
+  const maxPrice = Number(maxPriceInput[0].value);
+  const minPrice = Number(minPriceInput[0].value);
 
   // 2. Creando estructura de filtro
   const filter = {
     price: {
       min: minPrice,
-      max: maxPrice
-    }
-  }
+      max: maxPrice,
+    },
+  };
 
-  // 3. llamando la fn para actualizar lista de productos según el filtro 
+  // 3. llamando la fn para actualizar lista de productos según el filtro
   const filteredProduct = getProductList(items, filter);
 
-  document.getElementById('products').innerHTML = filteredProduct;
-  console.log("filtrando...");
-  
+  //4. re pinta la nueva lista de productos en el DOM
+  document.getElementById("products").innerHTML = filteredProduct;
+
+  //5. Crear un nuevo elemento de HTML
+  const filterItem = `
+  <span id="filter-item"> 
+    ${priceFormat(minPrice)} a ${priceFormat(maxPrice)} 
+    <button id="clear-filter" class="btn">x</button>
+  </span>`;
+
+  // 6. pintar elemento filter en elemento sidebar
+  const sideBar = document.getElementsByClassName("sidebar")[0];
+  const filterCard = document.getElementsByClassName("filter-card")[0];
+
+  filterCard.insertAdjacentHTML("beforebegin", filterItem);
+
+  const clearFilterBtn = document.getElementById("clear-filter");
+  //7. reset price filter input
+  maxPriceInput[0].value = "";
+  minPriceInput[0].value = "";
+
+  function clearCb() {
+    const productList = getProductList(items);
+    //4. re pinta la nueva lista de productos en el DOM
+    document.getElementById("products").innerHTML = productList;
+  }
+
+  clearFilterBtn.addEventListener("click", clearCb);
 }
 
 const homeLayout = `
 <div class="container d-flex justify-content-between">
   <div class="sidebar">
     <h1> Filtros </h1>
-
     <div class="filter-card">
-
       <div class="form-input d-flex flex-column">
         <label for="maxPrice">Precio Maximo</label>
         <input name="maxPrice" value="50000"/>
       </div>
-
       <div class="form-input d-flex flex-column">
         <label for="minPrice">Precio Minimo</label>
         <input name="minPrice" value="100"/>
       </div>
-
       <input value="Filtrar" type="submit" id="btn-filter" class="btn btn-primary mt-2"/>
     
     </div>
   </div>
-
   <div id="products" class='products'>
     ${getProductList(items)}
   </div>
 </div>
-`
+`;
+// Aqui que tenga que ver con un elemento en homeLayout voy a tener un error
+document.getElementById("app").innerHTML = homeLayout;
 
 
-  // Aqui que tenga que ver con un elemento en homeLayout voy a tener un error
-  document.getElementById('app').innerHTML = homeLayout;
-
-
-
-
-  const btnFilter = document.getElementById('btn-filter');
-  btnFilter.addEventListener("click", filter);
-
-
-
+const btnFilter = document.getElementById("btn-filter");
+btnFilter.addEventListener("click", filter);
