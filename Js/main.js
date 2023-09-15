@@ -623,9 +623,6 @@ function getProductList(products, filter) {
     const priceWithoutDecimals = Math.floor(product.price); // Eliminar decimales del precio
     const formattedPrice = priceFormat(priceWithoutDecimals); // Formatear el precio sin decimales con separador de miles y símbolo de moneda
 
-    const priceWithoutDecimals = Math.floor(product.price); // Eliminar decimales del precio
-    const formattedPrice = priceFormat(priceWithoutDecimals); // Formatear el precio sin decimales con separador de miles y símbolo de moneda
-
     // template de elementos html
     const item = `
     
